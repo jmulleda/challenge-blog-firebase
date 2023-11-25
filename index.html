@@ -1,0 +1,141 @@
+<html>
+<head>
+    <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+        // My web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7IlwWZfwWDgqreVC6U2FljmStcDPTpQs",
+            authDomain: "web104-project-jm.firebaseapp.com",
+            projectId: "web104-project-jm",
+            storageBucket: "web104-project-jm.appspot.com",
+            messagingSenderId: "917587784166",
+            appId: "1:917587784166:web:bf54ea74d6e8b82eee6627"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function addNewBlog() {
+            let blogs = document.getElementById('title').value;
+
+            db.collection("blogs").doc(blogs).set({
+                title: document.getElementById('title').value,
+                content: document.getElementById('content').value,
+                author: document.getElementById('author').value,
+                date: document.getElementById('date').value,
+            })
+            .then(() => {
+                console.log("Document successfully written!");
+            })
+            .catch((error) => {
+                console.error("Error writing document: ", error);
+            });
+
+        }
+
+        function viewAllBlogs() {
+            db.collection("blogs")
+            .get()
+            .then((all) => {
+                let docs = all.docs;
+                let render = document.getElementById('blogs');
+                render.innerHTML = ""; // Clear previous content
+
+                for (let i = 0; i < docs.length; i++) {
+                    let data = docs[i].data();
+                    render.innerHTML += "<h2>" + "Blog Entry # " + (i + 1) + "</h2>";
+                    render.innerHTML += "<li>" + "TITLE: " + data.title + "</li>";
+                    render.innerHTML += "<li>" + "CONTENT: " + data.content + "</li>";
+                    render.innerHTML += "<li>" + "AUTHOR: " + data.author + "</li>";
+                    render.innerHTML += "<li>" + "DATE: " + data.date + "</li>";
+                    render.innerHTML += "<li>" + "<button onclick='editBlog(\"" + docs[i].id + "\")'>" + "Edit Content" + "</button>" + "</li>";
+                    render.innerHTML += "<li>" + "<button onclick='deleteBlog(\"" + docs[i].id + "\")'>" + "Delete" + "</button>" + "</li>";
+                    render.innerHTML += "<hr>";
+                }
+
+            })
+            .catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
+        }
+
+        function editBlog(blogId) {
+            let newData = prompt("Enter the new content for the blog:");
+
+            if (newData !== null) {
+                db.collection("blogs").doc(blogId).update({
+                    content: newData
+                })
+                .then(() => {
+                    console.log("Document successfully updated!");
+                    viewAllBlogs(); // refresh the blog list after editing
+                })
+                .catch((error) => {
+                    console.error("Error updating document: ", error);
+                });
+            }
+        }
+
+         // delete entry
+        function deleteBlog(blogId) {
+            db.collection("blogs").doc(blogId).delete()
+                .then(() => {
+                    console.log("Document successfully deleted!");
+                    viewAllBlogs(); // refresh the blog list after deleting
+                })
+                .catch((error) => {
+                    console.error("Error deleting document: ", error);
+                });
+        }
+
+        // clears the screen
+        function clearBlogs() {
+            let render = document.getElementById('blogs');
+            render.innerHTML = ""; 
+        }
+
+    </script>
+</head>
+<body>
+<nav>
+    <div class="navbar-area">
+        <div class="logo">
+            <a href="#">Simple Blog Using Firebase</a>
+        </div>
+        <div class="navbar">
+            <div class="navbar">
+                <a class="active" href="#">Home</a>
+                <a href="#">About Me</a>
+                <a href="#">Contact</a>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="input">
+        <h1>Create New Post</h1>
+        <form>
+            Title
+            <input id="title" type="text" placeholder="Type the title">
+            Content
+            <input id="content" type="textarea" placeholder="Type the content">
+            Author
+            <input id="author" type="text" placeholder="Type the author">
+            Date
+            <input id="date" type="text" placeholder="Type the date">
+        </form>
+        <button onclick="addNewBlog()">Post New Blog</button>
+    </div>
+    <div class="blogs">
+        <h1>Blog Entries</h1>
+        <button onclick="viewAllBlogs()">View All Blogs</button>
+        <button onclick="clearBlogs()">Clear All Blogs</button>
+        <p id="blogs"></p>
+    </div>
+</div>
+</body>
+</html>
